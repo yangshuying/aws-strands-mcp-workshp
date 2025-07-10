@@ -18,6 +18,8 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+mcp = FastMCP("rule-query-server")
+
 # 硅基流动 API 配置
 SILICONFLOW_CONFIG = {
     "api_url": "https://api.siliconflow.cn/v1/chat/completions",
