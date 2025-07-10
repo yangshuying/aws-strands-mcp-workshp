@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 # 配置日志记录
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler('/home/ubuntu/aws-strands-mcp-workshp/data_preprocess/server.log'),
         logging.StreamHandler(sys.stdout)
@@ -56,19 +56,23 @@ def update_docstring_with_info(func):
 
 def get_categories() -> Optional[Dict[str, Any]]:
     """获取订单分类信息"""
+    logger.info("开始获取订单分类信息")
     try:
         response = requests.get(CATEGORY_API_URL, timeout=30)
         response.raise_for_status()
+        logger.info("成功获取订单分类信息")
         return response.json()
     except requests.exceptions.RequestException as e:
-        print(f"HTTP请求失败: {e}")
+        logger.error(f"HTTP请求失败: {e}")
         return None
 
 def call_siliconflow_deepseek(messages: list, temperature: float = 0.7) -> Optional[str]:
     """调用硅基流动 DeepSeek API"""
-    api_key = os.getenv('SILICONFLOW_API_KEY')
-    #api_key = "sk-ctnusafctoclndjxtqdcgunqeqnbamexemowpqelqgduzhim" 
+    logger.info("开始调用硅基流动 DeepSeek API")
+    #api_key = os.getenv('SILICONFLOW_API_KEY')
+    api_key = "sk-ctnusafctoclndjxtqdcgunqeqnbamexemowpqelqgduzhim" 
     if not api_key:
+        logger.error("未设置环境变量 SILICONFLOW_API_KEY")
         raise ValueError("请设置环境变量 SILICONFLOW_API_KEY")
     
     headers = {
@@ -85,6 +89,7 @@ def call_siliconflow_deepseek(messages: list, temperature: float = 0.7) -> Optio
     }
     
     try:
+        logger.info(f"发送请求到 {SILICONFLOW_CONFIG['api_url']}")
         response = requests.post(
             SILICONFLOW_CONFIG["api_url"], 
             headers=headers, 
@@ -93,16 +98,19 @@ def call_siliconflow_deepseek(messages: list, temperature: float = 0.7) -> Optio
         )
         response.raise_for_status()
         result = response.json()
+        logger.info("成功获取 DeepSeek API 响应")
         return result['choices'][0]['message']['content']
     except requests.exceptions.RequestException as e:
-        print(f"DeepSeek API调用失败: {e}")
+        logger.error(f"DeepSeek API调用失败: {e}")
         return None
     except (KeyError, IndexError) as e:
-        print(f"解析API响应失败: {e}")
+        logger.error(f"解析API响应失败: {e}")
         return None
 
 def simulate_llm_response(input_query: str) -> Dict[str, Any]:
     """模拟LLM响应（备用方案）"""
+    logger.info(f"使用模拟LLM响应处理查询: {input_query}")
+    
     # 查找订单号模式
     order_patterns = [
         r'订单号?\s*[：:]\s*([A-Za-z0-9]+)',
@@ -117,8 +125,10 @@ def simulate_llm_response(input_query: str) -> Dict[str, Any]:
     
     # 移除重复
     order_ids = list(set(order_ids))
+    logger.info(f"提取到的订单号: {order_ids}")
     
     if not order_ids:
+        logger.info("未找到有效订单号，返回无效问题")
         return {"valid_question": "no"}
     
     # 简单的意图识别
@@ -133,10 +143,12 @@ def simulate_llm_response(input_query: str) -> Dict[str, Any]:
     if not purposes:
         purposes = ['查询订单状态']  # 默认意图
     
+    logger.info(f"识别到的意图: {purposes}")
+    
     task_count = max(len(order_ids), len(purposes))
     
     if task_count == 1:
-        return {
+        result = {
             "valid_question": "yes",
             "multi-task": "no",
             "task_count": 1,
@@ -158,11 +170,14 @@ def simulate_llm_response(input_query: str) -> Dict[str, Any]:
                 f"order_id_{i+1}": order_ids[i] if i < len(order_ids) else order_ids[-1],
                 f"purpose_{i+1}": purposes[i] if i < len(purposes) else purposes[-1]
             }
-        
-        return result
+    
+    logger.info(f"模拟响应结果: {result}")
+    return result
 
 def extract_tasks_with_deepseek(input_query: str, categories: Dict[str, Any]) -> Dict[str, Any]:
     """使用DeepSeek API从用户查询中提取订单任务信息"""
+    logger.info(f"使用DeepSeek提取任务信息，查询: {input_query}")
+    
     system_prompt = f"""你是一个订单查询分析助手。你需要从用户的查询问题中提取订单相关任务，并将其分解为标准格式。
 
 你需要遵循以下规则：
@@ -226,7 +241,7 @@ def extract_tasks_with_deepseek(input_query: str, categories: Dict[str, Any]) ->
     response_content = call_siliconflow_deepseek(messages, temperature=0.7)
     
     if not response_content:
-        # 如果API调用失败，使用备用方案
+        logger.warning("DeepSeek API调用失败，使用备用方案")
         return simulate_llm_response(input_query)
     
     try:
@@ -240,11 +255,12 @@ def extract_tasks_with_deepseek(input_query: str, categories: Dict[str, Any]) ->
         cleaned_content = cleaned_content.strip()
         
         result = json.loads(cleaned_content)
+        logger.info(f"成功解析DeepSeek响应: {result}")
         return result
         
     except json.JSONDecodeError as e:
-        print(f"JSON解析失败: {e}")
-        print(f"原始响应: {response_content}")
+        logger.error(f"JSON解析失败: {e}")
+        logger.error(f"原始响应: {response_content}")
         # 如果解析失败，使用备用方案
         return simulate_llm_response(input_query)
 
@@ -259,17 +275,21 @@ def data_preprocess(input_query: str) -> str:
     Returns:
         str: JSON格式的任务摘要，包含订单号、意图、任务数量等信息
     """
+    logger.info(f"开始处理数据预处理请求: {input_query}")
     try:
         # Step 1: 获取分类信息
         categories_response = get_categories()
         if not categories_response:
+            logger.error("获取分类信息失败")
             return json.dumps({"error": "Failed to fetch categories"}, ensure_ascii=False)
         
         # Step 2: LLM处理 - 任务提取
         task_summary = extract_tasks_with_deepseek(input_query, categories_response)
+        logger.info(f"任务提取完成: {task_summary}")
         return json.dumps(task_summary, ensure_ascii=False, indent=2)
         
     except Exception as e:
+        logger.error(f"任务提取失败: {str(e)}")
         return json.dumps({"error": f"Task extraction failed: {str(e)}"}, ensure_ascii=False)
 
 @mcp.tool()
@@ -280,13 +300,17 @@ def get_order_categories() -> str:
     Returns:
         str: JSON格式的分类信息
     """
+    logger.info("获取订单分类信息请求")
     try:
         categories = get_categories()
         if categories:
+            logger.info("成功返回分类信息")
             return json.dumps(categories, ensure_ascii=False, indent=2)
         else:
+            logger.error("获取分类信息失败")
             return json.dumps({"error": "Failed to fetch categories"}, ensure_ascii=False)
     except Exception as e:
+        logger.error(f"获取分类信息异常: {str(e)}")
         return json.dumps({"error": f"Failed to get categories: {str(e)}"}, ensure_ascii=False)
 
 @mcp.tool()
@@ -300,10 +324,13 @@ def simulate_task_extraction(input_query: str) -> str:
     Returns:
         str: JSON格式的模拟任务提取结果
     """
+    logger.info(f"模拟任务提取请求: {input_query}")
     try:
         result = simulate_llm_response(input_query)
+        logger.info(f"模拟任务提取完成: {result}")
         return json.dumps(result, ensure_ascii=False, indent=2)
     except Exception as e:
+        logger.error(f"模拟任务提取失败: {str(e)}")
         return json.dumps({"error": f"Simulation failed: {str(e)}"}, ensure_ascii=False)
 
 if __name__ == "__main__":
@@ -316,19 +343,3 @@ if __name__ == "__main__":
     except Exception as e:
         logger.error(f"服务器运行异常: {str(e)}")
         raise
-    # 设置API密钥（实际使用时应该从环境变量获取）
-    # os.environ['SILICONFLOW_API_KEY'] = 'your_api_key_here'
-    
-    # 测试用例
-    #test_queries = [
-    #    "我要调整订单ST-9012的配送时间",
-    #    "今天天气怎么样？"  # 无效问题
-    #]
-    
-    #for query in test_queries:
-    #    print(f"\n查询: {query}")
-    #    result = data_preprocess(query)
-    #    print(f"结果: {json.dumps(result, ensure_ascii=False, indent=2)}")
-    #    print("-" * 50)
-
-    
