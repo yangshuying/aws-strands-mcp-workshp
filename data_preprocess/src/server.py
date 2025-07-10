@@ -292,20 +292,20 @@ def simulate_task_extraction(input_query: str) -> str:
         return json.dumps({"error": f"Simulation failed: {str(e)}"}, ensure_ascii=False)
 
 if __name__ == "__main__":
-    #mcp.run()
+    mcp.run()
     # 设置API密钥（实际使用时应该从环境变量获取）
     # os.environ['SILICONFLOW_API_KEY'] = 'your_api_key_here'
     
     # 测试用例
-    test_queries = [
-        "我要调整订单ST-9012的配送时间",
-        "今天天气怎么样？"  # 无效问题
-    ]
+    #test_queries = [
+    #    "我要调整订单ST-9012的配送时间",
+    #    "今天天气怎么样？"  # 无效问题
+    #]
     
-    for query in test_queries:
-        print(f"\n查询: {query}")
-        result = data_preprocess(query)
-        print(f"结果: {json.dumps(result, ensure_ascii=False, indent=2)}")
-        print("-" * 50)
+    ##for query in test_queries:
+    #    print(f"\n查询: {query}")
+    #    result = data_preprocess(query)
+    #    print(f"结果: {json.dumps(result, ensure_ascii=False, indent=2)}")
+    #    print("-" * 50)
 
     
