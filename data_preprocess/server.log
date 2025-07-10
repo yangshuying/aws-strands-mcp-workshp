@@ -26,3 +26,29 @@
 2025-07-10 04:31:04,916 - INFO - Processing request of type ListToolsRequest
 2025-07-10 04:31:18,674 - INFO - Processing request of type ListToolsRequest
 2025-07-10 04:31:23,934 - INFO - Processing request of type CallToolRequest
+<<<<<<< HEAD
+=======
+2025-07-10 09:34:40,375 - INFO - 启动MCP数据预处理服务器
+2025-07-10 09:34:40,375 - INFO - 服务器配置: {'api_url': 'https://api.siliconflow.cn/v1/chat/completions', 'model': 'deepseek-ai/DeepSeek-V3', 'max_tokens': 2000, 'timeout': 60}
+2025-07-10 09:34:40,376 - INFO - 分类API URL: https://1m9r5sk109.execute-api.cn-northwest-1.amazonaws.com.cn/prod/category
+2025-07-10 09:44:15,265 - INFO - 启动MCP数据预处理服务器
+2025-07-10 09:44:15,265 - INFO - 服务器配置: {'api_url': 'https://api.siliconflow.cn/v1/chat/completions', 'model': 'deepseek-ai/DeepSeek-V3', 'max_tokens': 2000, 'timeout': 60}
+2025-07-10 09:44:15,265 - INFO - 分类API URL: https://1m9r5sk109.execute-api.cn-northwest-1.amazonaws.com.cn/prod/category
+2025-07-10 09:44:15,276 - INFO - Processing request of type ListToolsRequest
+2025-07-10 09:55:25,517 - INFO - Processing request of type ListToolsRequest
+2025-07-10 09:55:34,674 - INFO - Processing request of type ListToolsRequest
+2025-07-10 09:55:34,677 - INFO - Processing request of type ListToolsRequest
+2025-07-10 09:57:17,299 - INFO - Processing request of type ListToolsRequest
+2025-07-10 09:57:17,305 - INFO - Processing request of type ListToolsRequest
+2025-07-10 09:57:20,498 - INFO - Processing request of type CallToolRequest
+2025-07-10 09:57:30,810 - INFO - Processing request of type CallToolRequest
+2025-07-10 10:17:51,762 - INFO - Processing request of type ListToolsRequest
+2025-07-10 10:17:51,765 - INFO - Processing request of type ListToolsRequest
+2025-07-10 10:17:56,758 - INFO - Processing request of type CallToolRequest
+2025-07-10 10:18:15,784 - INFO - Processing request of type ListToolsRequest
+2025-07-10 10:18:15,787 - INFO - Processing request of type ListToolsRequest
+2025-07-10 10:18:19,302 - INFO - Processing request of type CallToolRequest
+2025-07-10 10:18:28,997 - INFO - Processing request of type ListToolsRequest
+2025-07-10 10:18:29,000 - INFO - Processing request of type ListToolsRequest
+2025-07-10 10:18:32,597 - INFO - Processing request of type CallToolRequest
+>>>>>>> dd3900d4deabf693999c9d36e276f0da63869f6b
