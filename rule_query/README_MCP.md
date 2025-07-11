@@ -98,8 +98,8 @@ python mcp_rule_query_server.py
 
 ## API端点
 
-- 订单状态查询: `https://1m9r5sk109.execute-api.cn-northwest-1.amazonaws.com.cn/prod/kit_box/order_status`
-- 规则匹配查询: `https://1m9r5sk109.execute-api.cn-northwest-1.amazonaws.com.cn/prod/purpose`
+- 订单状态查询: `https://xxxxxxxxxx/prod/kit_box/order_status`
+- 规则匹配查询: `https://xxxxxxxxxx/prod/purpose`
 
 ## 错误处理
 
