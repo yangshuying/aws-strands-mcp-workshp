@@ -291,10 +291,11 @@ class S3DownloadAgent:
 # ============================================================================
 
 # 配置OpenAI兼容的模型，使用SiliconFlow作为API提供商
+API_KEY = os.environ.get('API_KEY')
 model = OpenAIModel(
     client_args={
         # API密钥 - 注意：在生产环境中应该使用环境变量存储
-        "api_key": "sk-ctnusafctoclndjxtqdcgunqeqnbamexemowpqelqgduzhim",
+        "api_key": API_KEY,
         # 使用SiliconFlow的API端点，提供DeepSeek模型服务
         "base_url": "https://api.siliconflow.cn/v1"
     },
